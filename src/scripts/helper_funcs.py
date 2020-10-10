@@ -1,8 +1,9 @@
 
 import logging
-from time import sleep 
+from time import sleep
 
 logger = logging.getLogger(__name__)
+logger = logging
 
 def retry(max_attempts, func, parms, sleep_secs=0):
 	"""
@@ -18,7 +19,7 @@ def retry(max_attempts, func, parms, sleep_secs=0):
 		attempts += 1
 
 		try:
-			ret_val = func(*parms)			
+			ret_val = func(*parms)
 			complete = True
 		except Exception, e:
 			last_exc = e

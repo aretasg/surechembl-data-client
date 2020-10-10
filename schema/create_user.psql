@@ -1,0 +1,22 @@
+-- creating user
+CREATE USER sc_client WITH ENCRYPTED PASSWORD 'surechembl';
+GRANT USAGE ON SCHEMA surechembl TO sc_client;
+GRANT SELECT ON ALL TABLES IN SCHEMA surechembl TO sc_client;
+GRANT insert ON ALL TABLES IN SCHEMA surechembl TO sc_client;
+GRANT update ON ALL TABLES IN SCHEMA surechembl TO sc_client;
+GRANT SELECT, USAGE ON ALL SEQUENCES IN SCHEMA surechembl to sc_client;
+ALTER DEFAULT PRIVILEGES IN SCHEMA surechembl GRANT SELECT ON TABLES TO sc_client;
+alter role sc_client set search_path to surechembl;
+
+show search_path;
+
+-- dropping user
+REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA surechembl FROM sc_client;
+REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA surechembl FROM sc_client;
+REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA surechembl FROM sc_client;
+REVOKE ALL PRIVILEGES ON DATABASE postgres FROM sc_client;
+REVOKE ALL PRIVILEGES ON SCHEMA surechembl FROM sc_client;
+DROP USER sc_client;
+-- OR
+DROP OWNED BY sc_client;
+DROP USER sc_client;

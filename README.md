@@ -1,9 +1,21 @@
 surechembl-data-client
 ======================
 
-A collection of scripts for retrieving SureChEMBL data and building a relational database of patent chemistry. 
+# Changes made to allow `surechembl-data-client` compatibility PostgreSQL
+* From the very start the script crashes on line 469 in `data_loader.py`. It was commented out and replaced with a block that does deal with missing key from `bib`.
+* If the same year is loaded again the script crashes - instead of skipping the year. Changed line 336 in `data_loader.py`
+* Added logging writting to files for tracking the process. Helpful in case something goes wrong and it's a long process to load all the backfiles.
+* Added conda environment file to create the environment using conda.
+* Added `schema/create_user.psql` to instruct how to create a SQL user (sc_client) to be used to load the data.
+* Added `src/update_backfiles.sh`. Shell loop to load all the backfiles - can be used with `nohup` to load the data in the background.
+* Added `src/update_frontfiles.sh`. Shell loop to load all the frontfiles for a given year.
 
-Please clone this repository to your local environment and follow the instructions below. 
+# The rest of the README as in the original repo
+# -----------------------------------------------
+
+A collection of scripts for retrieving SureChEMBL data and building a relational database of patent chemistry.
+
+Please clone this repository to your local environment and follow the instructions below.
 
 Released under the MIT license. Access to the SureChEMBL data must be obtained from EMBL-EBI.
 
@@ -37,8 +49,8 @@ The complete 'pinned' library dependencies can be found in the following files, 
     src/requirements_ubuntu.txt
     src/requirements_macosx.txt
 
-These files were generated using pip's 'freeze' command. Use this file with your version of pip if you want to ensure 
-your python environment completely matches the tested environment. Note however that the only non-core Python 
+These files were generated using pip's 'freeze' command. Use this file with your version of pip if you want to ensure
+your python environment completely matches the tested environment. Note however that the only non-core Python
 dependencies are SQLAlchemy and the DB API clienbt.
 
 ## Database Client - Oracle Example
@@ -65,17 +77,17 @@ The database schema can be found in:
     schema/sc_data.sql
 
 It is designed to be RDBMS agnostic, but has only been tested with Oracle XE and MySQL.
- 
+
 A detailed description of the schema can be found in Google Docs, [here](https://docs.google.com/document/d/1INrMl63bp0Ut7hi_BvCXmW39SS62QeYL99lKB3PdwE4/edit#heading=h.6senzsu0y7u).
 
-**NOTE: The schema requires minor alterations depending on your RDBMS - see the inline instructions in sc_data.sql** 
+**NOTE: The schema requires minor alterations depending on your RDBMS - see the inline instructions in sc_data.sql**
 
 As an alternative to sc_data.sql, a SQL Alchemy schema can be used to generate the database schema. See the following test
 for an example of how to do this:
 
     data_load_test.py - DataLoaderTests.setUp()
 
-Note that an Oracle-specific helper script is provided to simplify user and tablespace creation prior to 
+Note that an Oracle-specific helper script is provided to simplify user and tablespace creation prior to
 installation of the schema (with small data allocations that are only suitable for small-scale testing).
 
     schema/create_user.osql
@@ -104,23 +116,23 @@ To initiate data loading, use the following script:
 
 The update script is designed for three related tasks:
 
-* To load 'back file' data to pre-populate the database with historic records 
+* To load 'back file' data to pre-populate the database with historic records
 * To load 'front file' data on a daily basis
 * To load manually downloaded chemistry data files into the database
 
-Back file loading should be performed once for each historic year, while front-file loading should be 
-performed every day. Manual loading can be used to selectively load chemistry data files. Under typical operating 
+Back file loading should be performed once for each historic year, while front-file loading should be
+performed every day. Manual loading can be used to selectively load chemistry data files. Under typical operating
 scenarios, only the first two tasks will be needed.
 
-The script requires a number of parameters. These are parsed and documented by Python's argparse library, so 
-a usage statement can be found by running the script with the -h argument. 
+The script requires a number of parameters. These are parsed and documented by Python's argparse library, so
+a usage statement can be found by running the script with the -h argument.
 
-Guidance is provided below for setting default parameters, followed by instructions for executing specific tasks. 
+Guidance is provided below for setting default parameters, followed by instructions for executing specific tasks.
 
 ## Set database connection parameters
 
-The update script requires parameters for database connectivity, however default parameters are provided. 
-These default can be changed by modifying the 'default' parameter as it appears in the following lines in 
+The update script requires parameters for database connectivity, however default parameters are provided.
+These default can be changed by modifying the 'default' parameter as it appears in the following lines in
 the script:
 
     parser.add_argument('--db_host',     metavar='dh', type=str,  help='Host where the database can be found',     default="127.0.0.1")
@@ -134,7 +146,7 @@ The update script also requires a working directory, the default being:
     /tmp/schembl_ftp_data
 
 The default can be overridden using a parameter, or changed in the same way as the database connection defaults.
- 
+
 NOTE: the working directory will be cleaned each time the update script is run.
 
 ## Loading the backfile
@@ -143,7 +155,7 @@ The following example shows how to load a single back-file year:
 
     ./src/update.py FTPUSER FTPPASS DB_USER DB_PASS --year 2006
 
-To obtain an FTP user and password, please contact the SureChEMBL team at the European Bioinformatics Institute. The 
+To obtain an FTP user and password, please contact the SureChEMBL team at the European Bioinformatics Institute. The
 database user and password should match that of the target RDBMS.
 
 This command will retrieve all data files for the given year (from the back file), and load the database with the data.
@@ -153,7 +165,7 @@ inserted record counts and timings.
 
 ## Loading the front file
 
-The following example shows how to load front file data for a given day: 
+The following example shows how to load front file data for a given day:
 
     src/update.py FTPUSER FTPPASS DB_USER DB_PASS --date 20141127
 
@@ -174,7 +186,7 @@ It's expected that this script is run by a cron task on a daily basis to load ne
 If you wish to load all data for a given front file day, use the --all parameter:
 
     src/update.py FTPUSER FTPPASS DB_USER DB_PASS --date 20141127 --all
-    
+
 This command will load **data for all documents published on the given day**.
 
 ## Loading manually downloaded files
@@ -189,7 +201,7 @@ To load a set of files from a directory on the local system:
 Any files in the given folder will be copied to the working directory, and loaded into the database
 as if they were downloaded directly from the server.
 
-You may also wish to use the input_dir option in conjuction with the 'overwrite' flag. This will force the deletion of any existing data for documents in your input files, replacing the document chemistry mappings, titles, classifications, etc. 
+You may also wish to use the input_dir option in conjuction with the 'overwrite' flag. This will force the deletion of any existing data for documents in your input files, replacing the document chemistry mappings, titles, classifications, etc.
 
     src/update.py FTPUSER FTPPASS DB_USER DB_PASS --input_dir PATH --overwrite
 
@@ -201,13 +213,13 @@ The update script has two modes of operation: **insertion only**, and **overwrit
 
 ### Insertion only mode (default)
 
-In this mode, the script expects that the data being loaded is not already present in the database. 
+In this mode, the script expects that the data being loaded is not already present in the database.
 
-If duplicate documents are detected, any existing data for the given document will be retained, and any new document/chemistry records in the input data will be inserted. 
+If duplicate documents are detected, any existing data for the given document will be retained, and any new document/chemistry records in the input data will be inserted.
 
 ### Overwrite mode [USE WITH CARE]
 
-In this mode, the script will delete any existing data associated with documents that appear in the input data. 
+In this mode, the script will delete any existing data associated with documents that appear in the input data.
 
 This includes doc/chemistry mappings, titles, and classifications but does NOT include the master record for the document, which is updated. This ensures that any references to the document (for example in derived data sets) will still be correct.
 
@@ -215,7 +227,7 @@ This includes doc/chemistry mappings, titles, and classifications but does NOT i
 
 ## Warnings
 
-Several warnings may be generated by the update script, these are summarised below. 
+Several warnings may be generated by the update script, these are summarised below.
 
     Integrity error ({ERROR}); data={RECORD}
 
@@ -244,7 +256,7 @@ but is relatively low impact and thus non-terminal.
 ## Data Coverage
 
 Back file data is available for 1973-2014 (up to 31st December 2014).
- 
+
 Front file data is available for the 1st January 2015 onwards, and is updated every day.
 
 

@@ -23,8 +23,12 @@ except ImportError:
     psycopg2 = None
 
 
-logging.basicConfig( format='%(asctime)s %(levelname)s %(name)s %(message)s', level=logging.INFO)
-logger = logging.getLogger(__name__)
+# logging.basicConfig( format='%(asctime)s %(levelname)s %(name)s %(message)s', level=logging.INFO)
+from logging.config import dictConfig
+from logging_conf import logging_conf
+dictConfig(logging_conf())
+# logger = logging.getLogger(__name__)
+logger = logging
 
 def main():
     """

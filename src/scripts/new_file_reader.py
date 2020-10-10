@@ -4,7 +4,8 @@ import re
 import logging
 import ftplib
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
+logger = logging
 
 class NewFileReader:
     """

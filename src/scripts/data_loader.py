@@ -8,7 +8,8 @@ from datetime import datetime
 from sqlalchemy import MetaData, Table, ForeignKey, Column, Sequence, Integer, Float, SmallInteger, Date, Text, select, bindparam, String
 # from sqlalchemy import String as _String
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
+logger = logging
 
 # Behaviour of the SQLAlchemy data type String is modified here for the case of Oracle
 # database. Without this modification you'll end up with full table scans for queries
@@ -116,7 +117,7 @@ class DataLoader:
         :param relevant_classes: List of document classification prefix strings to treat as relevant.
         :param load_titles Flag indicating whether document titles should be loaded at all
         :param load_classifications Flag indicating whether document classifications should be loaded at all
-        :param overwrite Flag indicating if existing documents should be overwritten - results in all existing 
+        :param overwrite Flag indicating if existing documents should be overwritten - results in all existing
             titles, classifications, and mappings being replaced for the document!
         :param allow_doc_dups: Flag indicating whether duplicate documents should be ignored
         """
@@ -146,7 +147,7 @@ class DataLoader:
                      Column('scpn',              String(50),    unique=True),
                      Column('published',         Date()),
                      Column('life_sci_relevant', SmallInteger()),
-                     Column('assign_applic',     String(1000)),                     
+                     Column('assign_applic',     String(1000)),
                      Column('family_id',         Integer))
 
         self.titles = Table('schembl_document_title', self.metadata,
@@ -244,7 +245,7 @@ class DataLoader:
 
                     # Early return: don't bother querying if we already have an ID
                     if input_pubnum in self.doc_id_map:
-                        extant_docs.add( input_pubnum ) 
+                        extant_docs.add( input_pubnum )
                         continue
 
                     doc_nums.add(input_pubnum)
@@ -265,13 +266,13 @@ class DataLoader:
 
             logger.debug( "Processing {} biblio records, up to index {}".format(len(chunk[1]), chunk[0]) )
 
-            new_doc_mappings = dict()   # Collection IDs for totally new document 
+            new_doc_mappings = dict()   # Collection IDs for totally new document
             overwrite_docs   = []       # Document records for overwriting
             duplicate_docs   = set()    # Set of duplicates to read IDs for
             known_count      = 0        # Count of known documents
 
             new_titles = []
-            new_classes = []        
+            new_classes = []
 
             doc_insert_time = 0
 
@@ -299,7 +300,7 @@ class DataLoader:
 
                     if self.overwrite:
                         # Create an overwrite record
-                        doc_id = self.doc_id_map[pubnumber]                    
+                        doc_id = self.doc_id_map[pubnumber]
                         overwrite_docs.append({
                             'extant_id'             : doc_id,
                             'new_published'         : pubdate,
@@ -311,7 +312,7 @@ class DataLoader:
                         continue
 
                 else:
-                    
+
                     # Create a new record for the document
                     record = {
                         'scpn'              : pubnumber,
@@ -319,7 +320,7 @@ class DataLoader:
                         'family_id'         : family_id,
                         'assign_applic'     : assign_applic,
                         'life_sci_relevant' : int(life_sci_relevant) }
-                    
+
                     try:
 
                         start = time.time()
@@ -331,14 +332,15 @@ class DataLoader:
                     except Exception, exc:
 
                         if exc.__class__.__name__ != "IntegrityError":
-                            raise
+                            # raise
+                            continue
 
                         elif self.allow_document_dups:
 
                             # It's an integrity error, and duplicates are allowed.
                             known_count += 1
-                            duplicate_docs.add(pubnumber)                    
-                            continue             
+                            duplicate_docs.add(pubnumber)
+                            continue
 
                         else:
 
@@ -370,8 +372,8 @@ class DataLoader:
                 # Update the master record for the document that's being overwritten
                 stmt = self.docs.update().\
                     where(self.docs.c.id == bindparam('extant_id')).\
-                    values(published=bindparam('new_published'), 
-                           family_id=bindparam('new_family_id'), 
+                    values(published=bindparam('new_published'),
+                           family_id=bindparam('new_family_id'),
                            life_sci_relevant=bindparam('new_life_sci_relevant'),
                            assign_applic=bindparam('new_assign_applic'))
 
@@ -442,7 +444,7 @@ class DataLoader:
             if extant_docs != None:
                 extant_docs.add( found_doc[0] )
 
-        logger.debug( "Found {} documents IDs, total known count: {}".format( found_docs_count, len(self.doc_id_map) ) )        
+        logger.debug( "Found {} documents IDs, total known count: {}".format( found_docs_count, len(self.doc_id_map) ) )
 
 
     def _extract_pubnumber(self, bib):
@@ -464,7 +466,11 @@ class DataLoader:
             fam_raw = bib_scalar(bib, 'family_id')
             family_id = int(fam_raw) if fam_raw != None else fam_raw
             assign_applic_raw = bib.get('assign_applic')
-            assign_applic = '|'.join(assign_applic_raw) if len(assign_applic_raw) > 0 else ""
+            # assign_applic = '|'.join(assign_applic_raw) if len(assign_applic_raw) > 0 else ""
+            if assign_applic_raw is not None:
+                assign_applic = '|'.join(assign_applic_raw) if len(assign_applic_raw) > 0 else ""
+            else:
+                assign_applic = ''
         except KeyError, exc:
             raise RuntimeError("Document is missing mandatory biblio field (KeyError: {})".format(exc))
         if len(pubnumber) == 0:
@@ -663,7 +669,7 @@ class DataLoader:
 
         logger.debug("Performing {} chemical structure inserts".format(len(new_chem_structs)) )
         chem_struc_ins.execute( new_chem_structs)
-        
+
         if (update):
             logger.debug("Performing {} mapping deletions (for update)".format(len(new_chem_structs)) )
             chem_map_del.execute( new_mappings)
