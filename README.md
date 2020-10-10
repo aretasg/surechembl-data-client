@@ -1,12 +1,13 @@
 surechembl-data-client
 ======================
 
-# Changes made to allow `surechembl-data-client` compatibility PostgreSQL
+# Changes made to allow `surechembl-data-client` compatibility with PostgreSQL
 * From the very start the script crashes on line 469 in `data_loader.py`. It was commented out and replaced with a block that does deal with missing key from `bib`.
 * If the same year is loaded again the script crashes - instead of skipping the year. Changed line 336 in `data_loader.py`
 * Added logging writting to files for tracking the process. Helpful in case something goes wrong and it's a long process to load all the backfiles.
 * Added conda environment file to create the environment using conda.
 * Added `schema/create_user.psql` to instruct how to create a SQL user (sc_client) to be used to load the data.
+* Added SQL query example for mapping compounds to SureChEMBL.
 * Added `src/update_backfiles.sh`. Shell loop to load all the backfiles - can be used with `nohup` to load the data in the background.
 * Added `src/update_frontfiles.sh`. Shell loop to load all the frontfiles for a given year.
 
