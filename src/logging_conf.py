@@ -4,7 +4,7 @@ def logging_conf():
         "version": 1,
         "loggers": {
             "": {  # root logger
-                "level": "NOTSET",
+                "level": "INFO",
                 "handlers": [
                     "debug_console_handler",
                     "info_rotating_file_handler",
