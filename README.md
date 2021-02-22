@@ -5,7 +5,7 @@ surechembl-data-client
 * From the very start the script crashes on line 469 in `data_loader.py`. It was commented out and replaced with a block that does deal with missing key from `bib`.
 * If the same year is loaded again the script crashes - instead of skipping the year. Changed line 336 in `data_loader.py`
 * Added logging writting to files for tracking the process. Helpful in case something goes wrong and it's a long process to load all the backfiles.
-* Added conda environment file to create the environment using conda.
+* Added conda environment file to create the environment using conda (`conda env create -f schembl-data-client-env.yml`).
 * Added `schema/create_user.psql` to instruct how to create a SQL user (sc_client) to be used to load the data.
 * Added SQL query example for mapping compounds to SureChEMBL.
 * Added `src/update_backfiles.sh`. Shell loop to load all the backfiles - can be used with `nohup` to load the data in the background.
